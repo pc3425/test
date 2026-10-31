@@ -1,0 +1,752 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>test</title>
+
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #f7f6f4;
+  touch-action: none;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  touch-action: none;
+  transform-origin: center center;
+}
+
+/* 집중할수록 화면 주변이 어두워짐 */
+.stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+
+  background: radial-gradient(
+    ellipse at center,
+    transparent 20%,
+    rgba(15, 10, 10, 0.72) 100%
+  );
+
+  opacity: var(--focus-level, 0);
+  transition: opacity 0.08s linear;
+}
+
+.cylinder {
+  position: relative;
+  width: min(18vw, 77.5px);
+  height: 35%;
+  transform: translateY(18px);
+  border-radius: 50% / 12%;
+
+  background: linear-gradient(
+    90deg,
+    #d96c70,
+    #ed898b 25%,
+    #f39a9a 50%,
+    #e67b80 78%,
+    #d66b70
+  );
+
+  box-shadow:
+    0 12px 25px #0002,
+    inset 5px 0 8px #fff3,
+    inset -5px 0 8px #b96d4930;
+
+  overflow: hidden;
+
+  --shake: 0px;
+  animation: cylinderShake 0.12s linear infinite;
+}
+
+@keyframes cylinderShake {
+  0% {
+    transform: translate3d(calc(var(--shake) * -1), 18px, 0);
+  }
+  25% {
+    transform: translate3d(var(--shake), 18px, 0);
+  }
+  50% {
+    transform: translate3d(calc(var(--shake) * -0.7), 18px, 0);
+  }
+  75% {
+    transform: translate3d(calc(var(--shake) * 0.7), 18px, 0);
+  }
+  100% {
+    transform: translate3d(calc(var(--shake) * -1), 18px, 0);
+  }
+}
+
+.cylinder::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5%;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.cylinder::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 13%;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.hole {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6%;
+  height: 4%;
+  border-radius: 50%;
+  background: #cc777a;
+  box-shadow: inset 0 1px 2px #8e4b4d50;
+}
+
+/* 게이지가 가득 찼을 때만 발생하는 빛 */
+.cylinder.focus-burst .hole {
+  animation: focusBurst 2.4s ease-out forwards;
+}
+
+@keyframes focusBurst {
+  0% {
+    box-shadow:
+      0 0 0 rgba(255, 255, 230, 0),
+      inset 0 1px 2px #8e4b4d50;
+  }
+  20% {
+    box-shadow:
+      0 0 24px 10px rgba(255, 255, 230, 0.95),
+      0 0 42px 15px rgba(255, 220, 190, 0.5),
+      inset 0 1px 2px #8e4b4d50;
+  }
+  55% {
+    box-shadow:
+      0 0 20px 7px rgba(255, 255, 230, 0.8),
+      0 0 35px 12px rgba(255, 220, 190, 0.35),
+      inset 0 1px 2px #8e4b4d50;
+  }
+  100% {
+    box-shadow:
+      0 0 0 rgba(255, 255, 230, 0),
+      inset 0 1px 2px #8e4b4d50;
+  }
+}
+
+.membrane {
+  position: absolute;
+  z-index: 3;
+  left: -5%;
+  bottom: 0;
+  width: 110%;
+  height: 15%;
+
+  background: linear-gradient(
+    90deg,
+    #e9a47f,
+    #f3b18f 20%,
+    #ffd0ad 50%,
+    #f3b18f 80%,
+    #e9a47f
+  );
+
+  border-radius: 50% / 5%;
+
+  box-shadow:
+    inset 5px 0 8px #fff3,
+    inset -5px 0 8px #b96d4930;
+}
+
+.membrane::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 0;
+  width: 100%;
+  height: 24px;
+  border-radius: 50%;
+  background: inherit;
+}
+
+/* 액자 받침대 */
+.frame-stand {
+  position: absolute;
+  z-index: 4;
+  left: calc(50% + 35px);
+  bottom: 37%;
+  width: 75px;
+  height: 145px;
+
+  background: linear-gradient(
+    90deg,
+    #a97843,
+    #d4aa76 45%,
+    #b18451
+  );
+
+  clip-path: polygon(
+    0 0,
+    75% 12%,
+    100% 100%,
+    12% 100%
+  );
+
+  transform: skewY(-5deg);
+  filter: drop-shadow(4px 5px 5px #0003);
+}
+
+/* 액자 */
+.picture-frame {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: 38%;
+
+  transform:
+    translateX(-50%)
+    perspective(900px)
+    rotateY(-5deg)
+    rotateX(3deg);
+
+  width: min(58vw, 220px);
+  aspect-ratio: 2 / 3;
+  padding: 13px;
+
+  background: linear-gradient(
+    135deg,
+    #f5dfbd 0%,
+    #d5ad7d 25%,
+    #f0d5ac 45%,
+    #b88b5b 75%,
+    #e7c79e 100%
+  );
+
+  border: 2px solid #b18a60;
+  border-radius: 3px;
+
+  box-shadow:
+    0 4px 0 #a17a50,
+    0 8px 0 #80603f,
+    0 15px 24px #0003,
+    inset 2px 2px 4px #fff9,
+    inset -2px -2px 5px #80603f70;
+
+  touch-action: none;
+  cursor: pointer;
+}
+
+.frame-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #eee9e1;
+  border: 2px solid #c2a17b;
+
+  box-shadow:
+    inset 0 2px 6px #0002,
+    0 1px 2px #fff8;
+
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.frame-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: none;
+}
+
+.frame-placeholder {
+  color: #9b8b78;
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+#photoInput {
+  display: none;
+}
+
+/* 게이지 */
+.gauge {
+  position: absolute;
+  right: 8%;
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 18px;
+  height: 45%;
+
+  border: 2px solid #b9a99a;
+  border-radius: 12px;
+  background: #e5dfd8;
+
+  box-shadow:
+    inset 0 2px 5px #0002,
+    0 3px 8px #0002;
+
+  overflow: hidden;
+}
+
+.gauge-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+
+  background: linear-gradient(
+    0deg,
+    #d96c70,
+    #ed898b,
+    #ffc0a5
+  );
+
+  border-radius: 8px;
+}
+
+/* 구멍에서 솟아오르는 흰색 액체 */
+.liquid-jet {
+  position: absolute;
+  z-index: 6;
+  left: 50%;
+  bottom: calc(35% - 18px);
+  width: 13px;
+  height: 0;
+  opacity: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+  border-radius: 50% 50% 35% 35%;
+
+  background: linear-gradient(
+    90deg,
+    #e9e9e9,
+    #ffffff 45%,
+    #f5f5f5
+  );
+
+  box-shadow: 0 0 5px #ffffff80;
+}
+
+.liquid-jet.active {
+  animation: liquidRise 1.2s ease-out forwards;
+}
+
+.liquid-jet::before,
+.liquid-jet::after {
+  content: "";
+  position: absolute;
+  bottom: 65%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0;
+}
+
+.liquid-jet::before {
+  left: -8px;
+}
+
+.liquid-jet::after {
+  right: -8px;
+}
+
+.liquid-jet.active::before {
+  animation: liquidDrop 0.8s ease-out forwards;
+}
+
+.liquid-jet.active::after {
+  animation: liquidDrop 0.9s ease-out 0.08s forwards;
+}
+
+@keyframes liquidRise {
+  0% {
+    height: 0;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  45% {
+    height: 85px;
+    opacity: 1;
+  }
+  70% {
+    height: 75px;
+    opacity: 0.9;
+  }
+  100% {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes liquidDrop {
+  0% {
+    transform: translateY(0) scale(0.4);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-35px) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* 사진에 튀는 흰색 액체 */
+.liquid-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.liquid-spot {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow:
+    0 0 3px rgba(255,255,255,0.8),
+    inset 1px 1px 3px rgba(255,255,255,0.9);
+
+  transform: scale(0);
+  animation: liquidDry 4s ease-out forwards;
+}
+
+@keyframes liquidDry {
+  0% {
+    opacity: 0;
+    transform: scale(0.15);
+  }
+
+  12% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+
+  25% {
+    opacity: 0.98;
+    transform: scale(1);
+  }
+
+  65% {
+    opacity: 0.85;
+    transform: scale(0.95);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="stage" id="stage">
+
+  <div class="cylinder" id="cylinder">
+    <div class="hole"></div>
+    <div class="membrane" id="membrane"></div>
+  </div>
+
+  <div class="liquid-jet" id="liquidJet"></div>
+
+  <div class="frame-stand"></div>
+
+  <div class="picture-frame" id="pictureFrame">
+    <div class="frame-inner">
+      <img id="preview" alt="선택한 사진">
+
+      <div class="frame-placeholder" id="placeholder">
+        사진을 선택하려면<br>여기를 눌러주세요
+      </div>
+
+      <div class="liquid-layer" id="liquidLayer"></div>
+    </div>
+  </div>
+
+  <input type="file" id="photoInput" accept="image/*">
+
+  <div class="gauge">
+    <div class="gauge-fill" id="gaugeFill"></div>
+  </div>
+
+</div>
+
+<script>
+const stage = document.getElementById("stage");
+const cylinder = document.getElementById("cylinder");
+const membrane = document.getElementById("membrane");
+const gaugeFill = document.getElementById("gaugeFill");
+const liquidJet = document.getElementById("liquidJet");
+
+const photoInput = document.getElementById("photoInput");
+const preview = document.getElementById("preview");
+const placeholder = document.getElementById("placeholder");
+const liquidLayer = document.getElementById("liquidLayer");
+
+let startY = 0;
+let startHeight = 0;
+let dragging = false;
+
+let startTargetIsFrame = false;
+let moved = false;
+
+let previousY = 0;
+let previousTime = 0;
+let previousDirection = 0;
+let lastOscillation = 0;
+
+let gaugeValue = 0;
+let activeMotion = false;
+let lastFrame = performance.now();
+let effectReady = true;
+let rapidDrain = false;
+let focusBurstTimer = null;
+
+// 막 높이 조절
+function render(height) {
+  const maxHeight = cylinder.clientHeight;
+  height = Math.max(15, Math.min(maxHeight, height));
+  membrane.style.height = height + "px";
+}
+
+// 드래그 시작
+stage.addEventListener("pointerdown", e => {
+  if (e.target.closest(".gauge")) return;
+
+  dragging = true;
+
+  startY = e.clientY;
+  startHeight = membrane.offsetHeight;
+
+  previousY = e.clientY;
+  previousTime = performance.now();
+  previousDirection = 0;
+
+  startTargetIsFrame = !!e.target.closest(".picture-frame");
+  moved = false;
+  activeMotion = false;
+
+  stage.setPointerCapture(e.pointerId);
+});
+
+// 드래그 중
+stage.addEventListener("pointermove", e => {
+  if (!dragging) return;
+
+  const difference = startY - e.clientY;
+
+  if (Math.abs(difference) > 5) {
+    moved = true;
+  }
+
+  render(startHeight + difference);
+
+  // 왕복 운동 감지
+  const now = performance.now();
+  const deltaY = e.clientY - previousY;
+  const deltaTime = now - previousTime;
+
+  if (deltaTime > 0) {
+    const speed = Math.abs(deltaY) / deltaTime;
+    const direction = Math.sign(deltaY);
+
+    if (speed > 0.35 && Math.abs(deltaY) > 3) {
+      if (
+        previousDirection !== 0 &&
+        direction !== previousDirection
+      ) {
+        activeMotion = true;
+        lastOscillation = now;
+      }
+
+      previousDirection = direction;
+    }
+  }
+
+  previousY = e.clientY;
+  previousTime = now;
+});
+
+// 드래그 종료
+function stopDrag() {
+  if (!dragging) return;
+
+  if (startTargetIsFrame && !moved) {
+    photoInput.click();
+  }
+
+  dragging = false;
+  activeMotion = false;
+}
+
+stage.addEventListener("pointerup", stopDrag);
+stage.addEventListener("pointercancel", () => {
+  dragging = false;
+  activeMotion = false;
+});
+
+// 구멍 빛 효과
+function createFocusBurst() {
+  cylinder.classList.remove("focus-burst");
+  void cylinder.offsetWidth;
+  cylinder.classList.add("focus-burst");
+
+  clearTimeout(focusBurstTimer);
+
+  focusBurstTimer = setTimeout(() => {
+    cylinder.classList.remove("focus-burst");
+  }, 2400);
+}
+
+// 구멍에서 액체가 솟아오르는 효과
+function createLiquidJet() {
+  liquidJet.classList.remove("active");
+  void liquidJet.offsetWidth;
+  liquidJet.classList.add("active");
+}
+
+// 사진에 액체가 튀는 효과
+function createLiquidEffect() {
+  if (!preview.src || preview.style.display === "none") return;
+
+  const spotCount = 18;
+
+  for (let i = 0; i < spotCount; i++) {
+    const spot = document.createElement("div");
+    spot.className = "liquid-spot";
+
+    const size = 8 + Math.random() * 32;
+
+    spot.style.width = size + "px";
+    spot.style.height = size * (0.7 + Math.random() * 0.6) + "px";
+    spot.style.left = Math.random() * 90 + "%";
+    spot.style.top = Math.random() * 90 + "%";
+
+    spot.style.borderRadius =
+      `${30 + Math.random() * 40}% ${30 + Math.random() * 40}% ` +
+      `${30 + Math.random() * 40}% ${30 + Math.random() * 40}%`;
+
+    spot.style.animationDelay = Math.random() * 0.7 + "s";
+
+    liquidLayer.appendChild(spot);
+
+    spot.addEventListener("animationend", () => {
+      spot.remove();
+    });
+  }
+}
+
+// 게이지 업데이트 및 집중 효과
+function updateGauge(now) {
+  const deltaTime = Math.min((now - lastFrame) / 1000, 0.05);
+  lastFrame = now;
+
+  const motionIsRecent = now - lastOscillation < 500;
+
+  if (rapidDrain) {
+    // 게이지가 가득 찬 뒤 약 2초 동안 빠르게 감소
+    gaugeValue -= deltaTime * 50;
+
+    if (gaugeValue <= 0) {
+      gaugeValue = 0;
+      rapidDrain = false;
+      effectReady = true;
+    }
+  } else if (dragging && activeMotion && motionIsRecent) {
+    gaugeValue += deltaTime * 9;
+  } else {
+    gaugeValue -= deltaTime * 3;
+  }
+
+  gaugeValue = Math.max(0, Math.min(100, gaugeValue));
+
+  const focusLevel = gaugeValue / 100;
+
+  // 화면 전체 확대: 최대 9%
+  const zoom = 1 + focusLevel * 0.09;
+  stage.style.transform = `scale(${zoom})`;
+
+  // 주변 어두워짐
+  stage.style.setProperty("--focus-level", focusLevel);
+
+  // 기존 흔들림 유지
+  const shakeAmount = focusLevel * 1.05;
+  cylinder.style.setProperty("--shake", shakeAmount + "px");
+
+  // 게이지가 가득 차면 효과 발생 후 빠르게 감소
+  if (gaugeValue >= 100 && effectReady) {
+    effectReady = false;
+    rapidDrain = true;
+
+    createFocusBurst();
+    createLiquidJet();
+    createLiquidEffect();
+  }
+
+  gaugeFill.style.height = gaugeValue + "%";
+
+  requestAnimationFrame(updateGauge);
+}
+
+requestAnimationFrame(updateGauge);
+
+// 화면 크기 변경
+window.addEventListener("resize", () => {
+  render(membrane.offsetHeight);
+});
+
+// 사진 불러오기
+photoInput.addEventListener("change", () => {
+  const file = photoInput.files[0];
+  if (!file) return;
+
+  const imageUrl = URL.createObjectURL(file);
+
+  preview.src = imageUrl;
+  preview.style.display = "block";
+  placeholder.style.display = "none";
+});
+</script>
+
+</body>
+</html>
+script>
+
+</body>
+</html>
